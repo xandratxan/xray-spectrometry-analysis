@@ -3,7 +3,7 @@ import numpy as np
 from spekpy import Spek
 import pandas as pd
 
-# User defined variables
+# 1. User defined variables
 
 # Anode angle
 th = 20
@@ -21,7 +21,7 @@ qualities = {
 # Output folder path
 folder = f'output/spekpy'
 
-# Calculate and store the results
+# 2. Calculate and store the results
 
 # Define empty dictionary to store results
 results = {}

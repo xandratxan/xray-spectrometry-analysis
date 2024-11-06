@@ -1,7 +1,7 @@
 # Script to compare mean energies obtained from measurements and spekpy
 import pandas as pd
 
-# User defined variables
+# 1. User defined variables
 
 # Mean energies from measured spectra
 qualities = ['N15', 'N20', 'N30', 'N40', 'N60', 'N250', 'H60', 'H200']
@@ -16,7 +16,7 @@ iso = {'N15': 12.4, 'N20': 16.3, 'N30': 24.6, 'N40': 33.3, 'N60': 47.9, 'N250': 
 # Output file
 output_path = 'data/comparison/mean_energy_max_kvp_filter.csv'
 
-# Calculate and store the results
+# 2. Calculate and store the results
 
 # Mean energies from measured spectra
 measurements_csv = [f'{measurements_path}/{q}.csv' for q in qualities]
@@ -50,6 +50,7 @@ df['Measurements vs. ISO'] = (1 - df['Measurements']/df['ISO'])*100
 df['Measurements vs. SpekPy'] = (1 - df['Measurements']/df['SpekPy'])*100
 df['SpekPy vs. ISO'] = (1 - df['SpekPy']/df['ISO'])*100
 
+# Save results
 df.to_csv(output_path)
 markdown_df = df.round(3).to_markdown()
 print(markdown_df)
