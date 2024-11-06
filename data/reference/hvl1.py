@@ -1,5 +1,5 @@
 ###########################################################
-# Script to calculate HVL from experimental spectra
+# Script to calculate HVL from experimental measurements
 ###########################################################
 
 import pandas as pd

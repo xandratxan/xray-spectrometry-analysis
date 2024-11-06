@@ -1,5 +1,5 @@
 ###########################################################
-# Script to calculate hK from experimental spectra
+# Script to calculate hK from experimental measurements
 ###########################################################
 
 # IMPORTAR LAS LIBRERIAS NECESARIAS
