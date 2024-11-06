@@ -35,4 +35,5 @@ for i, q in enumerate(qualities):
 # Adjust layout to prevent overlap
 plt.tight_layout()
 # Show the plot
+plt.savefig('data/comparison/spectra.png')
 plt.show()
