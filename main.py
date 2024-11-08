@@ -144,6 +144,54 @@ def get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_co
     return hvl2
 
 
+def write_excel(spectrometry, spekpy, iso, spectrometry_vs_iso, spectrometry_vs_spekpy, spekpy_vs_iso):
+    with pd.ExcelWriter('unfiltered.xlsx', engine='xlsxwriter') as writer:
+        sheet_name = 'unfiltered'
+
+        writer.book.add_worksheet(sheet_name)
+        worksheet = writer.sheets[sheet_name]
+        decimal_format = writer.book.add_format({'num_format': '0.000'})
+        worksheet.set_column('A:O', 15, decimal_format)  # Set the width of column A to 20
+        worksheet.conditional_format('B17:O24', {
+            'type': '3_color_scale',
+            'min_color': '#63BE7B',  # Green
+            'mid_color': '#FFFFFF',  # Yellow
+            'max_color': '#F8696B'  # Red
+        })
+
+        worksheet.write(1, 1, 'X-ray reference field characteristic values')
+        worksheet.write(2, 1, 'From spectrometry')
+        spectrometry = spectrometry.reset_index()
+        spectrometry.rename(columns={'index': 'Quality'}, inplace=True)
+        spectrometry.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=1, index=False)
+
+        worksheet.write(2, 6, 'From SpekPy')
+        spekpy = spekpy.reset_index()
+        spekpy.rename(columns={'index': 'Quality'}, inplace=True)
+        spekpy.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=6, index=False)
+
+        worksheet.write(2, 11, 'From ISO')
+        iso = iso.reset_index()
+        iso.rename(columns={'index': 'Quality'}, inplace=True)
+        iso.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=11, index=False)
+
+        worksheet.write(13, 1, 'X-ray reference field characteristic values comparison')
+        worksheet.write(14, 1, 'Spectrometry vs. ISO')
+        spectrometry_vs_iso = spectrometry_vs_iso.reset_index()
+        spectrometry_vs_iso.rename(columns={'index': 'Quality'}, inplace=True)
+        spectrometry_vs_iso.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=1, index=False)
+
+        worksheet.write(14, 6, 'Spectrometry vs. SpekPy')
+        spectrometry_vs_spekpy = spectrometry_vs_spekpy.reset_index()
+        spectrometry_vs_spekpy.rename(columns={'index': 'Quality'}, inplace=True)
+        spectrometry_vs_spekpy.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=6, index=False)
+
+        worksheet.write(14, 11, 'SpekPy vs. ISO')
+        spekpy_vs_iso = spekpy_vs_iso.reset_index()
+        spekpy_vs_iso.rename(columns={'index': 'Quality'}, inplace=True)
+        spekpy_vs_iso.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=11, index=False)
+
+
 def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
     if run_spekpy:
         qualities = {
@@ -214,51 +262,7 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
         spectrometry_vs_iso.rename(columns=columns_map, inplace=True)
         spectrometry_vs_spekpy.rename(columns=columns_map, inplace=True)
 
-        with pd.ExcelWriter('unfiltered.xlsx', engine='xlsxwriter') as writer:
-            sheet_name = 'unfiltered'
-
-            writer.book.add_worksheet(sheet_name)
-            worksheet = writer.sheets[sheet_name]
-            decimal_format = writer.book.add_format({'num_format': '0.000'})
-            worksheet.set_column('A:O', 15, decimal_format)  # Set the width of column A to 20
-            worksheet.conditional_format('B17:O24', {
-                'type': '3_color_scale',
-                'min_color': '#63BE7B',  # Green
-                'mid_color': '#FFFFFF',  # Yellow
-                'max_color': '#F8696B'  # Red
-            })
-
-            worksheet.write(1, 1, 'X-ray reference field characteristic values')
-            worksheet.write(2, 1, 'From spectrometry')
-            spectrometry = spectrometry.reset_index()
-            spectrometry.rename(columns={'index': 'Quality'}, inplace=True)
-            spectrometry.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=1, index=False)
-
-            worksheet.write(2, 6, 'From SpekPy')
-            spekpy = spekpy.reset_index()
-            spekpy.rename(columns={'index': 'Quality'}, inplace=True)
-            spekpy.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=6, index=False)
-
-            worksheet.write(2, 11, 'From ISO')
-            iso = iso.reset_index()
-            iso.rename(columns={'index': 'Quality'}, inplace=True)
-            iso.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=11, index=False)
-
-            worksheet.write(13, 1, 'X-ray reference field characteristic values comparison')
-            worksheet.write(14, 1, 'Spectrometry vs. ISO')
-            spectrometry_vs_iso = spectrometry_vs_iso.reset_index()
-            spectrometry_vs_iso.rename(columns={'index': 'Quality'}, inplace=True)
-            spectrometry_vs_iso.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=1, index=False)
-
-            worksheet.write(14, 6, 'Spectrometry vs. SpekPy')
-            spectrometry_vs_spekpy = spectrometry_vs_spekpy.reset_index()
-            spectrometry_vs_spekpy.rename(columns={'index': 'Quality'}, inplace=True)
-            spectrometry_vs_spekpy.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=6, index=False)
-
-            worksheet.write(14, 11, 'SpekPy vs. ISO')
-            spekpy_vs_iso = spekpy_vs_iso.reset_index()
-            spekpy_vs_iso.rename(columns={'index': 'Quality'}, inplace=True)
-            spekpy_vs_iso.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=11, index=False)
+        write_excel(spectrometry, spekpy, iso, spectrometry_vs_iso, spectrometry_vs_spekpy, spekpy_vs_iso)
 
 
 if __name__ == "__main__":
