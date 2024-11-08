@@ -143,26 +143,20 @@ def get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_co
 
     return hvl2
 
-def get_characteristics_spectrometry(
-quality,
-spectrum_path, spectrum_columns,
-mu_tr_rho_path, mu_tr_rho_columns,
-mu_rho_al_path, mu_rho_al_columns, rho_al,
-mu_rho_cu_path, mu_rho_cu_columns, rho_cu,
-filter_energy
-):
+
+def get_characteristics_spectrometry(quality, spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
+                                     mu_rho_al_path, mu_rho_al_columns, rho_al, mu_rho_cu_path, mu_rho_cu_columns,
+                                     rho_cu, filter_energy):
+    if quality in ['N15', 'N20', 'N30', 'N40', 'H60']:
+        mu_rho_path, mu_rho_columns, rho = mu_rho_al_path, mu_rho_al_columns, rho_al
+    else:
+        mu_rho_path, mu_rho_columns, rho = mu_rho_cu_path, mu_rho_cu_columns, rho_cu
 
     mean_energy = get_mean_energy(spectrum_path, spectrum_columns, filter_energy=filter_energy)
-    if quality in ['N15', 'N20', 'N30', 'N40', 'H60']:
-        hvl1 = get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                             mu_rho_al_path, mu_rho_al_columns, rho_al, filter_energy=filter_energy)
-        hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                              mu_rho_al_path, mu_rho_al_columns, rho_al, hvl1, filter_energy=filter_energy)
-    else:
-        hvl1 = get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                             mu_rho_cu_path, mu_rho_cu_columns, rho_cu, filter_energy=filter_energy)
-        hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                              mu_rho_cu_path, mu_rho_cu_columns, rho_cu, hvl1, filter_energy=filter_energy)
+    hvl1 = get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
+                         mu_rho_path, mu_rho_columns, rho, filter_energy=filter_energy)
+    hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
+                          mu_rho_path, mu_rho_columns, rho, hvl1, filter_energy=filter_energy)
     return mean_energy, hvl1, hvl2
 
 
