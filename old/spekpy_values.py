@@ -19,7 +19,7 @@ qualities = {
     'H200': {'kvp': 200, 'filters': [['Al', 4], ['Cu', 1], ['Air', 1000]]}
 }
 # Output folder path
-folder = f'output/spekpy'
+folder = f'.'
 
 # 2. Calculate and store the results
 
@@ -44,10 +44,13 @@ for k, v in qualities.items():
     # Get spectrum
     spectrum = s.get_spectrum(diff=False)
     # Create DataFrame with spectrum
-    df = pd.DataFrame(np.transpose(spectrum), columns=['E (keV)', 'F (1/cm2)'])
+    df = pd.DataFrame(np.transpose(spectrum), columns=['Energy (keV)', 'Fluence (1/cm2)'])
     # Save spectrum to CSV file
-    df.to_csv(f'{folder}/{k}.csv', index=False)
+    # df.to_csv(f'{folder}/{k}.csv', index=False)
 # Save quantities of interest as CSV file
 df = pd.DataFrame(results)
-df.to_csv(f'{folder}/quantities.csv')
+df = df.transpose()
+df = df.reset_index()
+df.rename(columns={'index': 'Quality'}, inplace=True)
+df.to_csv(f'{folder}/quantities.csv', index=False)
 

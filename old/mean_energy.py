@@ -5,16 +5,16 @@ import pandas as pd
 
 # Mean energies from measured spectra
 qualities = ['N15', 'N20', 'N30', 'N40', 'N60', 'N250', 'H60', 'H200']
-measurements_path = f'data/measurements'
-filter = False
+measurements_path = f'../data/measurements'
+filter = True
 lower = [0]*8
 upper = [15, 20, 30, 40, 60, 250, 60, 200]
 # Mean energies from spekpy
-spekpy_path = 'data/spekpy/quantities.csv'
+spekpy_path = '../data/spekpy/quantities.csv'
 # Mean energies from ISO 4037-1 Table 1
 iso = {'N15': 12.4, 'N20': 16.3, 'N30': 24.6, 'N40': 33.3, 'N60': 47.9, 'N250': 207, 'H60': 38.0, 'H200': 99.3}
 # Output file
-output_path = 'data/comparison/mean_energy_max_kvp_filter.csv'
+output_path = '../data/comparison/mean_energy_max_kvp_filter.csv'
 
 # 2. Calculate and store the results
 
