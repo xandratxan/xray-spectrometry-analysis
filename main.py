@@ -270,7 +270,8 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
         spectrometry_vs_iso.rename(columns=columns_map, inplace=True)
         spectrometry_vs_spekpy.rename(columns=columns_map, inplace=True)
 
-        write_excel(spectrometry, spekpy, iso, spectrometry_vs_iso, spectrometry_vs_spekpy, spekpy_vs_iso)
+        write_excel(spectrometry=spectrometry, spekpy=spekpy, iso=iso,
+                    spectrometry_vs_iso=spectrometry_vs_iso, spectrometry_vs_spekpy=spectrometry_vs_spekpy, spekpy_vs_iso=spekpy_vs_iso)
 
 
 if __name__ == "__main__":
