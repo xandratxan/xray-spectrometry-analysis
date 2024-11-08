@@ -160,15 +160,16 @@ def get_characteristics_spectrometry(quality, spectrum_path, spectrum_columns, m
     return mean_energy, hvl1, hvl2
 
 
-def write_excel(spectrometry, spekpy, iso, spectrometry_vs_iso, spectrometry_vs_spekpy, spekpy_vs_iso):
+def write_excel(spectrometry, spekpy, iso, measurement, spectrometry_vs_iso, spectrometry_vs_spekpy, spekpy_vs_iso,
+                measurement_vs_spectrometry, measurement_vs_iso, measurement_vs_spekpy):
     with pd.ExcelWriter('unfiltered.xlsx', engine='xlsxwriter') as writer:
         sheet_name = 'unfiltered'
 
         writer.book.add_worksheet(sheet_name)
         worksheet = writer.sheets[sheet_name]
         decimal_format = writer.book.add_format({'num_format': '0.000'})
-        worksheet.set_column('A:O', 15, decimal_format)  # Set the width of column A to 20
-        worksheet.conditional_format('B17:O24', {
+        worksheet.set_column('A:AA', 15, decimal_format)  # Set the width of column A to 20
+        worksheet.conditional_format('B17:AA24', {
             'type': '3_color_scale',
             'min_color': '#63BE7B',  # Green
             'mid_color': '#FFFFFF',  # Yellow
@@ -191,6 +192,11 @@ def write_excel(spectrometry, spekpy, iso, spectrometry_vs_iso, spectrometry_vs_
         iso.rename(columns={'index': 'Quality'}, inplace=True)
         iso.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=11, index=False)
 
+        worksheet.write(2, 16, 'From measurement')
+        measurement = measurement.reset_index()
+        measurement.rename(columns={'index': 'Quality'}, inplace=True)
+        measurement.to_excel(writer, sheet_name=sheet_name, startrow=3, startcol=16, index=False)
+
         worksheet.write(13, 1, 'X-ray reference field characteristic values comparison')
         worksheet.write(14, 1, 'Spectrometry vs. ISO')
         spectrometry_vs_iso = spectrometry_vs_iso.reset_index()
@@ -206,6 +212,21 @@ def write_excel(spectrometry, spekpy, iso, spectrometry_vs_iso, spectrometry_vs_
         spekpy_vs_iso = spekpy_vs_iso.reset_index()
         spekpy_vs_iso.rename(columns={'index': 'Quality'}, inplace=True)
         spekpy_vs_iso.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=11, index=False)
+
+        worksheet.write(14, 16, 'Measurement vs. spectrometry')
+        measurement_vs_spectrometry = measurement_vs_spectrometry.reset_index()
+        measurement_vs_spectrometry.rename(columns={'index': 'Quality'}, inplace=True)
+        measurement_vs_spectrometry.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=16, index=False)
+
+        worksheet.write(14, 20, 'Measurement vs. ISO')
+        measurement_vs_iso = measurement_vs_iso.reset_index()
+        measurement_vs_iso.rename(columns={'index': 'Quality'}, inplace=True)
+        measurement_vs_iso.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=20, index=False)
+
+        worksheet.write(14, 24, 'Measurement vs. SpekPy')
+        measurement_vs_spekpy = measurement_vs_spekpy.reset_index()
+        measurement_vs_spekpy.rename(columns={'index': 'Quality'}, inplace=True)
+        measurement_vs_spekpy.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=24, index=False)
 
 
 def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
@@ -248,18 +269,36 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
         iso = iso.set_index('Quality')
         spekpy = pd.read_csv('data/spekpy/characteristics.csv')
         spekpy = spekpy.set_index('Quality')
+        measurement = pd.read_csv('data/measurements/hvl.csv')
+        measurement = measurement.set_index('Quality')
 
         spekpy_vs_iso = np.abs(1 - spekpy / iso) * 100
         spectrometry_vs_iso = np.abs(1 - spectrometry / iso) * 100
         spectrometry_vs_spekpy = np.abs(1 - spectrometry / spekpy) * 100
+
+        measurement_vs_spectrometry = np.abs(1 - measurement / spectrometry) * 100
+        measurement_vs_iso = np.abs(1 - measurement / iso) * 100
+        measurement_vs_spekpy = np.abs(1 - measurement / spekpy) * 100
+
+        columns = ['HVL1 (mm)', 'HVL2 (mm)']
+        measurement_vs_spectrometry = measurement_vs_spectrometry[columns]
+        measurement_vs_iso = measurement_vs_iso[columns]
+        measurement_vs_spekpy = measurement_vs_spekpy[columns]
 
         columns_map = {'Mean energy (keV)': 'Mean energy (%)', 'HVL1 (mm)': 'HVL1 (%)', 'HVL2 (mm)': 'HVL2 (%)'}
         spekpy_vs_iso.rename(columns=columns_map, inplace=True)
         spectrometry_vs_iso.rename(columns=columns_map, inplace=True)
         spectrometry_vs_spekpy.rename(columns=columns_map, inplace=True)
 
-        write_excel(spectrometry=spectrometry, spekpy=spekpy, iso=iso,
-                    spectrometry_vs_iso=spectrometry_vs_iso, spectrometry_vs_spekpy=spectrometry_vs_spekpy, spekpy_vs_iso=spekpy_vs_iso)
+        columns_map = {'HVL1 (mm)': 'HVL1 (%)', 'HVL2 (mm)': 'HVL2 (%)'}
+        measurement_vs_spectrometry.rename(columns=columns_map, inplace=True)
+        measurement_vs_iso.rename(columns=columns_map, inplace=True)
+        measurement_vs_spekpy.rename(columns=columns_map, inplace=True)
+
+        write_excel(spectrometry=spectrometry, spekpy=spekpy, iso=iso, measurement=measurement,
+                    spectrometry_vs_iso=spectrometry_vs_iso, spectrometry_vs_spekpy=spectrometry_vs_spekpy,
+                    spekpy_vs_iso=spekpy_vs_iso, measurement_vs_spectrometry=measurement_vs_spectrometry,
+                    measurement_vs_iso=measurement_vs_iso, measurement_vs_spekpy=measurement_vs_spekpy)
 
 
 if __name__ == "__main__":
