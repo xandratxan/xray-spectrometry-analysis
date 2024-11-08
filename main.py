@@ -226,8 +226,8 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
             'H60': {'kvp': 60, 'filters': [['Be', 1], ['Al', 3.9], ['Air', 1000]]},
             'H200': {'kvp': 200, 'filters': [['Al', 4], ['Cu', 1], ['Air', 1000]]}
         }
-        spekpy_spectra, spekpy_characteristics = get_characteristics_from_spekpy(20, qualities, save=True,
-                                                                                 folder='data/spekpy')
+        spekpy = get_characteristics_from_spekpy(th=20, qualities=qualities, save=True, folder='data/spekpy')
+        spekpy_spectra, spekpy_characteristics = spekpy
 
     if run_spectrometry:
         qualities = ['N15', 'N20', 'N30', 'N40', 'N60', 'N250', 'H60', 'H200']
