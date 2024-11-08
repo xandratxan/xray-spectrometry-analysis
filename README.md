@@ -1,6 +1,6 @@
 # Analysis of experimental spectra for GuideRadPROS project meeting in Finland
 
-CHOSEN QUALITIES AND QUANTITIES
+Chosen qualities and quantities for the project
 
 | Quality | Quantity       | Distance | Angles                    | ISO Part 3 |
 |---------|----------------|----------|---------------------------|------------|
