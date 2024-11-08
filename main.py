@@ -233,8 +233,8 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
         qualities = ['N15', 'N20', 'N30', 'N40', 'N60', 'N250', 'H60', 'H200']
         # filters_energy = [(0, 15), (0, 20), (0, 30), (0, 40), (0, 60), (0, 250), (0, 60), (0, 200)]
         filters_energy = [None] * 8
-        mean_energies, hvl1s, hvl2s = {}, {}, {}
 
+        spectrometry = {'Mean energy (keV)': {}, 'HVL1 (mm)': {}, 'HVL2 (mm)': {}}
         for quality, filter_energy in zip(qualities, filters_energy):
             mean_energy, hvl1, hvl2 = get_characteristics_spectrometry(
                 quality=quality,
@@ -244,16 +244,10 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
                 mu_rho_cu_path='data/coefficients/muCu.txt', mu_rho_cu_columns=['Energy (MeV)', 'μ/ρ (cm2/g)'], rho_cu=8.96,
                 filter_energy=filter_energy
             )
-
-            mean_energies[quality] = mean_energy
-            hvl1s[quality] = hvl1 * 10
-            hvl2s[quality] = hvl2 * 10
-
-        spectrometry = pd.DataFrame({
-            'Mean energy (keV)': mean_energies,
-            'HVL1 (mm)': hvl1s,
-            'HVL2 (mm)': hvl2s
-        })
+            spectrometry['Mean energy (keV)'][quality] = mean_energy
+            spectrometry['HVL1 (mm)'][quality] = hvl1 * 10
+            spectrometry['HVL2 (mm)'][quality] = hvl2 * 10
+        spectrometry = pd.DataFrame(spectrometry)
 
     if run_comparison:
         iso = pd.read_csv('data/iso/characteristics.csv')
