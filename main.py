@@ -143,6 +143,28 @@ def get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_co
 
     return hvl2
 
+def get_characteristics_spectrometry(
+quality,
+spectrum_path, spectrum_columns,
+mu_tr_rho_path, mu_tr_rho_columns,
+mu_rho_al_path, mu_rho_al_columns, rho_al,
+mu_rho_cu_path, mu_rho_cu_columns, rho_cu,
+filter_energy
+):
+
+    mean_energy = get_mean_energy(spectrum_path, spectrum_columns, filter_energy=filter_energy)
+    if quality in ['N15', 'N20', 'N30', 'N40', 'H60']:
+        hvl1 = get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
+                             mu_rho_al_path, mu_rho_al_columns, rho_al, filter_energy=filter_energy)
+        hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
+                              mu_rho_al_path, mu_rho_al_columns, rho_al, hvl1, filter_energy=filter_energy)
+    else:
+        hvl1 = get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
+                             mu_rho_cu_path, mu_rho_cu_columns, rho_cu, filter_energy=filter_energy)
+        hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
+                              mu_rho_cu_path, mu_rho_cu_columns, rho_cu, hvl1, filter_energy=filter_energy)
+    return mean_energy, hvl1, hvl2
+
 
 def write_excel(spectrometry, spekpy, iso, spectrometry_vs_iso, spectrometry_vs_spekpy, spekpy_vs_iso):
     with pd.ExcelWriter('unfiltered.xlsx', engine='xlsxwriter') as writer:
@@ -214,28 +236,14 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
         mean_energies, hvl1s, hvl2s = {}, {}, {}
 
         for quality, filter_energy in zip(qualities, filters_energy):
-            spectrum_path = f'data/measurements/{quality}.csv'
-            spectrum_columns = ['Energy[keV]', 'Fluence_rate [cm^-2s^-1]']
-            mu_tr_rho_path = 'data/coefficients/mutr.txt'
-            mu_tr_rho_columns = ['Energy (keV)', 'μtr/ρ (cm2/g)']
-
-            mean_energy = get_mean_energy(spectrum_path, spectrum_columns, filter_energy=filter_energy)
-            if quality in ['N15', 'N20', 'N30', 'N40', 'H60']:
-                mu_rho_al_path = 'data/coefficients/muAl.txt'
-                mu_rho_al_columns = ['Energy (MeV)', 'μ/ρ (cm2/g)']
-                rho_al = 2.699  # g/cm3
-                hvl1 = get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                                     mu_rho_al_path, mu_rho_al_columns, rho_al, filter_energy=filter_energy)
-                hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                                      mu_rho_al_path, mu_rho_al_columns, rho_al, hvl1, filter_energy=filter_energy)
-            else:
-                mu_rho_cu_path = 'data/coefficients/muCu.txt'
-                mu_rho_cu_columns = ['Energy (MeV)', 'μ/ρ (cm2/g)']
-                rho_cu = 8.96  # g/cm3
-                hvl1 = get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                                     mu_rho_cu_path, mu_rho_cu_columns, rho_cu, filter_energy=filter_energy)
-                hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
-                                      mu_rho_cu_path, mu_rho_cu_columns, rho_cu, hvl1, filter_energy=filter_energy)
+            mean_energy, hvl1, hvl2 = get_characteristics_spectrometry(
+                quality=quality,
+                spectrum_path=f'data/measurements/{quality}.csv', spectrum_columns=['Energy[keV]', 'Fluence_rate [cm^-2s^-1]'],
+                mu_tr_rho_path='data/coefficients/mutr.txt', mu_tr_rho_columns=['Energy (keV)', 'μtr/ρ (cm2/g)'],
+                mu_rho_al_path='data/coefficients/muAl.txt', mu_rho_al_columns=['Energy (MeV)', 'μ/ρ (cm2/g)'], rho_al=2.699,
+                mu_rho_cu_path='data/coefficients/muCu.txt', mu_rho_cu_columns=['Energy (MeV)', 'μ/ρ (cm2/g)'], rho_cu=8.96,
+                filter_energy=filter_energy
+            )
 
             mean_energies[quality] = mean_energy
             hvl1s[quality] = hvl1 * 10
