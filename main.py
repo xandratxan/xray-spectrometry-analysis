@@ -50,6 +50,44 @@ def get_mean_energy(csv_path, columns, filter_energy=None):
     return mean_energy
 
 
+def get_mean_conversion_coefficient(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns, hk_path,
+                                    hk_columns, filter_energy=None):
+    spectrum = pd.read_csv(spectrum_path)
+    spectrum = spectrum[spectrum_columns]
+    spectrum.columns = ['energy', 'fluence']
+
+    mu_tr_rho = pd.read_csv(mu_tr_rho_path)
+    mu_tr_rho = mu_tr_rho[mu_tr_rho_columns]
+    mu_tr_rho.columns = ['energy', 'mu_tr_rho']
+
+    hk = pd.read_csv(hk_path)
+    hk = hk[hk_columns]
+    hk.columns = ['energy', 'hk']
+
+    mu_tr_rho_interpolator = Akima1DInterpolator(x=np.log(mu_tr_rho['energy']), y=np.log(mu_tr_rho['mu_tr_rho']))
+    hk_interpolator = Akima1DInterpolator(x=np.log(hk['energy']), y=np.log(hk['mu_tr_rho']))
+
+    df = pd.DataFrame({
+        'energy': spectrum['energy'],
+        'fluence': spectrum['fluence'],
+        'mu_tr_rho': np.exp(mu_tr_rho_interpolator(x=np.log(spectrum['energy']))),
+        'hk': np.exp(hk_interpolator(x=np.log(hk['energy']))),
+    })
+
+    if filter_energy is not None:
+        min_energy = filter_energy[0]
+        max_energy = filter_energy[1]
+        df = df[df['energy'] > min_energy]
+        df = df[df['energy'] < max_energy]
+
+    energy = df['energy']
+    fluence = df['fluence']
+    mu_tr_rho = df['mu_tr_rho']
+    hk = df['hk']
+
+    return sum(fluence * energy * mu_tr_rho * hk) / sum(fluence * energy * mu_tr_rho)
+
+
 def get_first_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns, mu_rho_path, mu_rho_columns,
                   material_density, filter_energy=None):
     spectrum = pd.read_csv(spectrum_path)
@@ -146,7 +184,7 @@ def get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_co
 
 def get_characteristics_spectrometry(quality, spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
                                      mu_rho_al_path, mu_rho_al_columns, rho_al, mu_rho_cu_path, mu_rho_cu_columns,
-                                     rho_cu, filter_energy):
+                                     rho_cu, hk_path, hk_columns, filter_energy):
     if quality in ['N15', 'N20', 'N30', 'N40', 'H60']:
         mu_rho_path, mu_rho_columns, rho = mu_rho_al_path, mu_rho_al_columns, rho_al
     else:
@@ -157,7 +195,9 @@ def get_characteristics_spectrometry(quality, spectrum_path, spectrum_columns, m
                          mu_rho_path, mu_rho_columns, rho, filter_energy=filter_energy)
     hvl2 = get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns,
                           mu_rho_path, mu_rho_columns, rho, hvl1, filter_energy=filter_energy)
-    return mean_energy, hvl1, hvl2
+    hk = get_mean_conversion_coefficient(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_columns, hk_path,
+                                         hk_columns, filter_energy=None)
+    return mean_energy, hvl1, hvl2, hk
 
 
 def write_excel(spectrometry, spekpy, iso, measurement, spectrometry_vs_iso, spectrometry_vs_spekpy, spekpy_vs_iso,
@@ -249,19 +289,28 @@ def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
         # filters_energy = [(0, 15), (0, 20), (0, 30), (0, 40), (0, 60), (0, 250), (0, 60), (0, 200)]
         filters_energy = [None] * 8
 
-        spectrometry = {'Mean energy (keV)': {}, 'HVL1 (mm)': {}, 'HVL2 (mm)': {}}
+        spectrometry = {'Mean energy (keV)': {}, 'HVL1 (mm)': {}, 'HVL2 (mm)': {}, 'Mean hk (Sv/Gy)': {}}
         for quality, filter_energy in zip(qualities, filters_energy):
-            mean_energy, hvl1, hvl2 = get_characteristics_spectrometry(
+            mean_energy, hvl1, hvl2, hk = get_characteristics_spectrometry(
                 quality=quality,
-                spectrum_path=f'data/measurements/{quality}.csv', spectrum_columns=['Energy[keV]', 'Fluence_rate [cm^-2s^-1]'],
-                mu_tr_rho_path='data/coefficients/mutr.txt', mu_tr_rho_columns=['Energy (keV)', 'μtr/ρ (cm2/g)'],
-                mu_rho_al_path='data/coefficients/muAl.txt', mu_rho_al_columns=['Energy (MeV)', 'μ/ρ (cm2/g)'], rho_al=2.699,
-                mu_rho_cu_path='data/coefficients/muCu.txt', mu_rho_cu_columns=['Energy (MeV)', 'μ/ρ (cm2/g)'], rho_cu=8.96,
+                spectrum_path=f'data/measurements/{quality}.csv',
+                spectrum_columns=['Energy[keV]', 'Fluence_rate [cm^-2s^-1]'],
+                mu_tr_rho_path='data/coefficients/mutr.txt',
+                mu_tr_rho_columns=['Energy (keV)', 'μtr/ρ (cm2/g)'],
+                mu_rho_al_path='data/coefficients/muAl.txt',
+                mu_rho_al_columns=['Energy (MeV)', 'μ/ρ (cm2/g)'],
+                rho_al=2.699,
+                mu_rho_cu_path='data/coefficients/muCu.txt',
+                mu_rho_cu_columns=['Energy (MeV)', 'μ/ρ (cm2/g)'],
+                rho_cu=8.96,
+                hk_path=None,
+                hk_columns=None,
                 filter_energy=filter_energy
             )
             spectrometry['Mean energy (keV)'][quality] = mean_energy
             spectrometry['HVL1 (mm)'][quality] = hvl1 * 10
             spectrometry['HVL2 (mm)'][quality] = hvl2 * 10
+            spectrometry['Mean hk (Sv/Gy)'][quality] = hk
         spectrometry = pd.DataFrame(spectrometry)
 
     if run_comparison:
