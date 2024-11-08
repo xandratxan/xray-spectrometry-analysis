@@ -144,11 +144,7 @@ def get_second_hvl(spectrum_path, spectrum_columns, mu_tr_rho_path, mu_tr_rho_co
     return hvl2
 
 
-if __name__ == "__main__":
-    run_spekpy = False
-    run_spectrometry = True
-    run_comparison = True
-
+def main(run_spekpy=False, run_spectrometry=False, run_comparison=False):
     if run_spekpy:
         qualities = {
             'N15': {'kvp': 15, 'filters': [['Be', 1], ['Al', 0.5], ['Air', 1000]]},
@@ -263,3 +259,7 @@ if __name__ == "__main__":
             spekpy_vs_iso = spekpy_vs_iso.reset_index()
             spekpy_vs_iso.rename(columns={'index': 'Quality'}, inplace=True)
             spekpy_vs_iso.to_excel(writer, sheet_name=sheet_name, startrow=15, startcol=11, index=False)
+
+
+if __name__ == "__main__":
+    main(run_spekpy=False, run_spectrometry=True, run_comparison=True)
